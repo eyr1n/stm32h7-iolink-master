@@ -10,53 +10,11 @@
 #include "driver/uart.hpp"
 #include "iolink/iolink_util.hpp"
 
-extern SPI_HandleTypeDef hspi3;
-
-extern UART_HandleTypeDef huart1;
-extern UART_HandleTypeDef huart2;
-extern UART_HandleTypeDef huart3;
-extern UART_HandleTypeDef huart6;
-
 namespace driver {
 
 class IOLinkPortDriver {
 public:
-  IOLinkPortDriver(ltc2874::Port port, iolink::COM com) : port_(port), com_(com) {
-    switch (port_) {
-      case ltc2874::Port::PORT1:
-        huart_ = &huart1;
-        txen_port_ = TXEN1_GPIO_Port;
-        txen_pin_ = TXEN1_Pin;
-        break;
-      case ltc2874::Port::PORT2:
-        huart_ = &huart2;
-        txen_port_ = TXEN2_GPIO_Port;
-        txen_pin_ = TXEN2_Pin;
-        break;
-      case ltc2874::Port::PORT3:
-        huart_ = &huart3;
-        txen_port_ = TXEN3_GPIO_Port;
-        txen_pin_ = TXEN3_Pin;
-        break;
-      case ltc2874::Port::PORT4:
-        huart_ = &huart6;
-        txen_port_ = TXEN4_GPIO_Port;
-        txen_pin_ = TXEN4_Pin;
-        break;
-    }
-
-    switch (com_) {
-      case iolink::COM::COM1:
-        huart_->Init.BaudRate = 4800;
-        break;
-      case iolink::COM::COM2:
-        huart_->Init.BaudRate = 38400;
-        break;
-      case iolink::COM::COM3:
-        huart_->Init.BaudRate = 230400;
-        break;
-    }
-  }
+  IOLinkPortDriver(ltc2874::Port port, iolink::COM com) : port_(port), com_(com), uart_(port, com) {}
 
   void init() {
     switch (port_) {
@@ -131,47 +89,59 @@ public:
   }
 
   void wakeup_request() {
-    HAL_UART_DeInit(huart_);
-    HAL_GPIO_WritePin(txen_port_, txen_pin_, GPIO_PIN_RESET);
+    uart_.deinit();
     switch (port_) {
       case ltc2874::Port::PORT1:
+        HAL_GPIO_WritePin(TXEN1_GPIO_Port, TXEN1_Pin, GPIO_PIN_RESET);
         driver::ltc2874.write_bit_lower(ltc2874::Register::EVENT3, ltc2874::EVENT3_Bit::TOC_CQ1, true);
         driver::ltc2874.write_bit_raise(ltc2874::Register::CTRL1, ltc2874::CTRL1_Bit::WKUP1, true);
         break;
       case ltc2874::Port::PORT2:
+        HAL_GPIO_WritePin(TXEN2_GPIO_Port, TXEN2_Pin, GPIO_PIN_RESET);
         driver::ltc2874.write_bit_lower(ltc2874::Register::EVENT3, ltc2874::EVENT3_Bit::TOC_CQ2, true);
         driver::ltc2874.write_bit_raise(ltc2874::Register::CTRL1, ltc2874::CTRL1_Bit::WKUP2, true);
         break;
       case ltc2874::Port::PORT3:
+        HAL_GPIO_WritePin(TXEN3_GPIO_Port, TXEN3_Pin, GPIO_PIN_RESET);
         driver::ltc2874.write_bit_lower(ltc2874::Register::EVENT3, ltc2874::EVENT3_Bit::TOC_CQ3, true);
         driver::ltc2874.write_bit_raise(ltc2874::Register::CTRL1, ltc2874::CTRL1_Bit::WKUP3, true);
         break;
       case ltc2874::Port::PORT4:
+        HAL_GPIO_WritePin(TXEN4_GPIO_Port, TXEN4_Pin, GPIO_PIN_RESET);
         driver::ltc2874.write_bit_lower(ltc2874::Register::EVENT3, ltc2874::EVENT3_Bit::TOC_CQ4, true);
-        driver::ltc2874.write_bit_raise(ltc2874::Register::CTRL1, ltc2874::CTRL1_Bit::WKUP1, true);
+        driver::ltc2874.write_bit_raise(ltc2874::Register::CTRL1, ltc2874::CTRL1_Bit::WKUP4, true);
         break;
     }
-    HAL_Delay(1);
-    HAL_UART_Init(huart_);
-    uart_.init(huart_);
+    delay_ms(1);
+    uart_.init();
   }
 
   template <size_t N> void mseq_transmit(const std::array<uint8_t, N> &mseq) {
     uart_.flush();
-    HAL_GPIO_WritePin(txen_port_, txen_pin_, GPIO_PIN_SET);
+    switch (port_) {
+      case ltc2874::Port::PORT1:
+        HAL_GPIO_WritePin(TXEN1_GPIO_Port, TXEN1_Pin, GPIO_PIN_SET);
+        break;
+      case ltc2874::Port::PORT2:
+        HAL_GPIO_WritePin(TXEN2_GPIO_Port, TXEN2_Pin, GPIO_PIN_SET);
+        break;
+      case ltc2874::Port::PORT3:
+        HAL_GPIO_WritePin(TXEN3_GPIO_Port, TXEN3_Pin, GPIO_PIN_SET);
+        break;
+      case ltc2874::Port::PORT4:
+        HAL_GPIO_WritePin(TXEN4_GPIO_Port, TXEN4_Pin, GPIO_PIN_SET);
+        break;
+    }
     uart_.transmit(mseq.data(), N);
-    HAL_GPIO_WritePin(txen_port_, txen_pin_, GPIO_PIN_RESET);
     latest_mseq_len_ = N;
   }
 
   template <size_t N> void mseq_receive(std::array<uint8_t, N> &res) {
     if (uart_.available() == latest_mseq_len_ + N) {
-      for (size_t i = 0; i < latest_mseq_len_; ++i) {
-        uart_.read();
-      }
-      for (size_t i = 0; i < N; ++i) {
-        res[i] = uart_.read();
-      }
+      uart_.advance(latest_mseq_len_);
+      uart_.receive(res.data(), N);
+    } else {
+      res.fill(0);
     }
   }
 
@@ -182,12 +152,7 @@ public:
 private:
   ltc2874::Port port_;
   iolink::COM com_;
-
-  UART_HandleTypeDef *huart_;
-  GPIO_TypeDef *txen_port_;
-  uint32_t txen_pin_;
   UART uart_;
-
   size_t latest_mseq_len_;
 };
 

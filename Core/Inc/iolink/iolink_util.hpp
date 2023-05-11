@@ -6,10 +6,6 @@
 
 namespace iolink {
 
-template <class T> inline constexpr std::underlying_type_t<T> to_underlying(T value) noexcept {
-  return static_cast<std::underlying_type_t<T>>(value);
-}
-
 enum class COM : uint32_t {
   COM1 = 4800,
   COM2 = 38400,
@@ -34,7 +30,11 @@ enum class MSeqType : uint8_t {
   TYPE_2 = 2,
 };
 
-template <size_t N> inline constexpr uint8_t mseq_checksum(const std::array<uint8_t, N> &mseq) {
+template <class T> constexpr std::underlying_type_t<T> to_underlying(T value) noexcept {
+  return static_cast<std::underlying_type_t<T>>(value);
+}
+
+template <size_t N> constexpr uint8_t mseq_checksum(const std::array<uint8_t, N> &mseq) {
   uint8_t checksum = 0x52;
   for (uint8_t e : mseq) {
     checksum ^= e;
@@ -47,8 +47,8 @@ template <size_t N> inline constexpr uint8_t mseq_checksum(const std::array<uint
 }
 
 template <class... Args>
-inline constexpr std::array<uint8_t, 2 + sizeof...(Args)> create_mseq(MSeqRW rw, MSeqChannel channel, uint8_t address,
-                                                                      MSeqType type, Args... args) {
+constexpr std::array<uint8_t, 2 + sizeof...(Args)> create_mseq(MSeqRW rw, MSeqChannel channel, uint8_t address,
+                                                               MSeqType type, Args... args) {
   uint8_t mc = (to_underlying(rw) << 7) | (to_underlying(channel) << 5) | (address);
   uint8_t ckt = (to_underlying(type) << 6);
   std::array<uint8_t, 2 + sizeof...(Args)> mseq = {mc, ckt, args...};

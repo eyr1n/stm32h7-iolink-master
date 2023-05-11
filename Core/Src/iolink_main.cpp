@@ -11,6 +11,15 @@
 extern TIM_HandleTypeDef htim1;
 extern FDCAN_HandleTypeDef hfdcan1;
 
+template <class Driver, size_t N, size_t... Seq>
+auto make_iolink_ports(std::array<Driver, N> &drivers, std::index_sequence<Seq...>) {
+  return std::array{iolink::IOLinkPort{drivers[Seq]}...};
+}
+
+template <class Driver, size_t N> auto make_iolink_ports(std::array<Driver, N> &drivers) {
+  return make_iolink_ports(drivers, std::make_index_sequence<N>());
+}
+
 extern "C" void iolink_main() {
   // IOLink Config
   std::array iolink_port_drivers{
@@ -19,12 +28,7 @@ extern "C" void iolink_main() {
       // driver::IOLinkPortDriver{ltc2874::Port::PORT3, iolink::COM::COM2},
       // driver::IOLinkPortDriver{ltc2874::Port::PORT4, iolink::COM::COM2},
   };
-  std::array iolink_ports{
-      iolink::IOLinkPort{iolink_port_drivers[0]},
-      // iolink::IOLinkPort{iolink_port_drivers[1]},
-      // iolink::IOLinkPort{iolink_port_drivers[2]},
-      // iolink::IOLinkPort{iolink_port_drivers[3]},
-  };
+  std::array iolink_ports = make_iolink_ports(iolink_port_drivers);
   uint32_t master_cycle_time = 3000;
 
   // Initialize STM32 Peripherals
@@ -90,5 +94,17 @@ extern "C" void iolink_main() {
       }
     }
     HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &tx_header, reinterpret_cast<uint8_t *>(process_data.data()));
+  }
+}
+
+extern "C" void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
+  if (huart->Instance == USART1) {
+    HAL_GPIO_WritePin(TXEN1_GPIO_Port, TXEN1_Pin, GPIO_PIN_RESET);
+  } else if (huart->Instance == USART2) {
+    HAL_GPIO_WritePin(TXEN2_GPIO_Port, TXEN2_Pin, GPIO_PIN_RESET);
+  } else if (huart->Instance == USART3) {
+    HAL_GPIO_WritePin(TXEN3_GPIO_Port, TXEN3_Pin, GPIO_PIN_RESET);
+  } else if (huart->Instance == USART6) {
+    HAL_GPIO_WritePin(TXEN4_GPIO_Port, TXEN4_Pin, GPIO_PIN_RESET);
   }
 }
