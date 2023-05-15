@@ -6,10 +6,10 @@
 
 namespace iolink {
 
-enum class COM : uint32_t {
-  COM1 = 4800,
-  COM2 = 38400,
-  COM3 = 230400,
+enum class COM {
+  COM1,
+  COM2,
+  COM3,
 };
 
 enum class MSeqRW : uint8_t {
