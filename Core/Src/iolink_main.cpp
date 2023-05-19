@@ -11,15 +11,6 @@
 extern TIM_HandleTypeDef htim1;
 extern FDCAN_HandleTypeDef hfdcan1;
 
-template <class Driver, size_t N, size_t... Seq>
-auto make_iolink_ports(std::array<Driver, N> &drivers, std::index_sequence<Seq...>) {
-  return std::array{iolink::IOLinkPort{drivers[Seq]}...};
-}
-
-template <class Driver, size_t N> auto make_iolink_ports(std::array<Driver, N> &drivers) {
-  return make_iolink_ports(drivers, std::make_index_sequence<N>());
-}
-
 extern "C" void iolink_main() {
   // IOLink Config
   std::array iolink_port_drivers{
@@ -28,7 +19,7 @@ extern "C" void iolink_main() {
       // driver::IOLinkPortDriver{ltc2874::Port::PORT3, iolink::COM::COM2},
       // driver::IOLinkPortDriver{ltc2874::Port::PORT4, iolink::COM::COM2},
   };
-  std::array iolink_ports = make_iolink_ports(iolink_port_drivers);
+  std::array iolink_ports = iolink::make_iolink_ports(iolink_port_drivers);
   uint32_t master_cycle_time = 3000;
 
   // Initialize STM32 Peripherals

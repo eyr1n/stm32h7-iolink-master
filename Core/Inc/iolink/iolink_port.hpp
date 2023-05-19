@@ -68,4 +68,13 @@ private:
   Driver &driver_;
 };
 
+template <class Driver, size_t N, size_t... Seq>
+auto make_iolink_ports(std::array<Driver, N> &drivers, std::index_sequence<Seq...>) {
+  return std::array{iolink::IOLinkPort{drivers[Seq]}...};
+}
+
+template <class Driver, size_t N> auto make_iolink_ports(std::array<Driver, N> &drivers) {
+  return make_iolink_ports(drivers, std::make_index_sequence<N>());
+}
+
 } // namespace iolink
