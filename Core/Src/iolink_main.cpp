@@ -14,8 +14,8 @@ extern FDCAN_HandleTypeDef hfdcan1;
 extern "C" void iolink_main() {
   // IOLink Config
   std::array iolink_port_drivers{
-      driver::IOLinkPortDriver{ltc2874::Port::PORT1, iolink::COM::COM2},
-      // driver::IOLinkPortDriver{ltc2874::Port::PORT2, iolink::COM::COM2},
+      // driver::IOLinkPortDriver{ltc2874::Port::PORT1, iolink::COM::COM2},
+      driver::IOLinkPortDriver{ltc2874::Port::PORT2, iolink::COM::COM2},
       // driver::IOLinkPortDriver{ltc2874::Port::PORT3, iolink::COM::COM2},
       // driver::IOLinkPortDriver{ltc2874::Port::PORT4, iolink::COM::COM2},
   };

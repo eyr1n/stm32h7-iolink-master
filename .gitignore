@@ -1,5 +1,3 @@
-Debug/
-Release/
-.settings/
-*.launch
-.vscode/
+build
+mx.scratch
+!.settings
