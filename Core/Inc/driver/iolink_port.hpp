@@ -97,7 +97,7 @@ public:
         driver::ltc2874.write_bit_raise(ltc2874::Register::CTRL1, ltc2874::CTRL1_Bit::WKUP1, true);
         break;
       case ltc2874::Port::PORT2:
-        HAL_GPIO_WritePin(TXEN2_GPIO_Port, TXEN2_Pin, GPIO_PIN_RESET);
+        // HAL_GPIO_WritePin(TXEN2_GPIO_Port, TXEN2_Pin, GPIO_PIN_RESET);
         driver::ltc2874.write_bit_lower(ltc2874::Register::EVENT3, ltc2874::EVENT3_Bit::TOC_CQ2, true);
         driver::ltc2874.write_bit_raise(ltc2874::Register::CTRL1, ltc2874::CTRL1_Bit::WKUP2, true);
         break;
@@ -123,7 +123,7 @@ public:
         HAL_GPIO_WritePin(TXEN1_GPIO_Port, TXEN1_Pin, GPIO_PIN_SET);
         break;
       case ltc2874::Port::PORT2:
-        HAL_GPIO_WritePin(TXEN2_GPIO_Port, TXEN2_Pin, GPIO_PIN_SET);
+        // HAL_GPIO_WritePin(TXEN2_GPIO_Port, TXEN2_Pin, GPIO_PIN_SET);
         break;
       case ltc2874::Port::PORT3:
         HAL_GPIO_WritePin(TXEN3_GPIO_Port, TXEN3_Pin, GPIO_PIN_SET);

@@ -1,6 +1,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
 
 #include "main.h"
 
@@ -10,6 +11,7 @@
 
 extern TIM_HandleTypeDef htim1;
 extern FDCAN_HandleTypeDef hfdcan1;
+extern UART_HandleTypeDef huart4;
 
 extern "C" void iolink_main() {
   // IOLink Config
@@ -84,7 +86,8 @@ extern "C" void iolink_main() {
         process_data[i] = (mseq_pd_response[1] << 8) | mseq_pd_response[2];
       }
     }
-    HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &tx_header, reinterpret_cast<uint8_t *>(process_data.data()));
+    // HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &tx_header, reinterpret_cast<uint8_t *>(process_data.data()));
+    printf("%d\r\n", (int)process_data[0]);
   }
 }
 
@@ -92,10 +95,17 @@ extern "C" void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
   if (huart->Instance == USART1) {
     HAL_GPIO_WritePin(TXEN1_GPIO_Port, TXEN1_Pin, GPIO_PIN_RESET);
   } else if (huart->Instance == USART2) {
-    HAL_GPIO_WritePin(TXEN2_GPIO_Port, TXEN2_Pin, GPIO_PIN_RESET);
+    // HAL_GPIO_WritePin(TXEN2_GPIO_Port, TXEN2_Pin, GPIO_PIN_RESET);
   } else if (huart->Instance == USART3) {
     HAL_GPIO_WritePin(TXEN3_GPIO_Port, TXEN3_Pin, GPIO_PIN_RESET);
   } else if (huart->Instance == USART6) {
     HAL_GPIO_WritePin(TXEN4_GPIO_Port, TXEN4_Pin, GPIO_PIN_RESET);
   }
+}
+
+extern "C" int _write(int, char *ptr, int len) {
+  if (HAL_UART_Transmit(&huart4, reinterpret_cast<uint8_t *>(ptr), len, HAL_MAX_DELAY) == HAL_OK) {
+    return len;
+  }
+  return -1;
 }

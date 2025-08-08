@@ -467,7 +467,7 @@ static void MX_USART2_UART_Init(void)
   huart2.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
   huart2.Init.ClockPrescaler = UART_PRESCALER_DIV1;
   huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-  if (HAL_UART_Init(&huart2) != HAL_OK)
+  if (HAL_RS485Ex_Init(&huart2, UART_DE_POLARITY_HIGH, 0, 0) != HAL_OK)
   {
     Error_Handler();
   }
@@ -642,13 +642,13 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, TXEN3_Pin|TXEN4_Pin|TXEN2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOD, TXEN3_Pin|TXEN4_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, TXEN1_Pin|CS_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : TXEN3_Pin TXEN4_Pin TXEN2_Pin */
-  GPIO_InitStruct.Pin = TXEN3_Pin|TXEN4_Pin|TXEN2_Pin;
+  /*Configure GPIO pins : TXEN3_Pin TXEN4_Pin */
+  GPIO_InitStruct.Pin = TXEN3_Pin|TXEN4_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

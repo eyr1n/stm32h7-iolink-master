@@ -65,8 +65,6 @@ void Error_Handler(void);
 #define TXEN1_GPIO_Port GPIOA
 #define CS_Pin GPIO_PIN_15
 #define CS_GPIO_Port GPIOA
-#define TXEN2_Pin GPIO_PIN_4
-#define TXEN2_GPIO_Port GPIOD
 
 /* USER CODE BEGIN Private defines */
 

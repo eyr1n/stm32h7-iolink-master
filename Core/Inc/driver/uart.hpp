@@ -48,7 +48,11 @@ public:
   }
 
   void init() {
-    HAL_UART_Init(huart_);
+    if (huart_->Instance == USART2) {
+      HAL_RS485Ex_Init(&huart2, UART_DE_POLARITY_HIGH, 0, 0);
+    } else {
+      HAL_UART_Init(huart_);
+    }
     HAL_UART_Receive_DMA(huart_, buf_.data(), buf_.size());
   }
 
